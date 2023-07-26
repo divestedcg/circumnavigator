@@ -7,9 +7,10 @@ This is a simple script to check a list of domains against a DNS resolver to det
 
 Use
 ---
-- source test.sh
-- downloadLists
-- runAllTests
+- source test.sh; #grab the functions
+- downloadLists; #download the bad lists
+- runAllTests; #start all tests in background
+- haltTests; #use to abort all the background threads
 
 Credits
 -------
