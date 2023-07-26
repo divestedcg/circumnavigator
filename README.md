@@ -3,7 +3,7 @@ Circumnavigator: A DNS Comparator
 
 Overview
 --------
-This is a simple script to check a list of domains against a DNS resolver to determine their rough effectiveness of proclaimed blocking capabilities. 
+This is a simple script to check lists of domains against a DNS resolver to determine their rough effectiveness of proclaimed blocking capabilities.
 
 Use
 ---
