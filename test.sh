@@ -52,13 +52,14 @@ function runAllLists(){
 	local resolver="$1";
 	local prettyname="$2";
 	testResolver "$resolver" "domains-good.txt" "$prettyname";
-	testResolver "$resolver" "domains-bad-abusech-50.txt" "$prettyname";
-	testResolver "$resolver" "domains-bad-certpl-50.txt" "$prettyname";
+	testResolver "$resolver" "domains-bad-abusech-shuf.txt" "$prettyname";
+	testResolver "$resolver" "domains-bad-certpl-shuf.txt" "$prettyname";
+	testResolver "$resolver" "domains-bad-disconnect_ads-shuf.txt" "$prettyname";
 }
 export -f runAllLists;
 
 function runAllTests(){
-	shuffleBad;
+	shuffleBad 50;
 	export resultTime=$(date +%s);
 	mkdir -p "results/$resultTime";
 
@@ -81,8 +82,20 @@ function runAllTests(){
 
 	runAllLists "@77.88.8.8" "Yandex" &
 	runAllLists "@77.88.8.88" "Yandex (Safe)" &
+
+	echo "Started all tests in background";
 }
 export -f runAllTests;
+
+function collateResults(){
+	if [ -n "$resultTime" ]; then
+		echo "last updated: $(date -uI -d @$resultTime)" > results/$resultTime.txt;
+		cat results/$resultTime/*.txt >> results/$resultTime.txt;
+	else
+		echo "results unavailable";
+	fi;
+}
+export -f collateResults;
 
 function haltTests(){
 	touch 0ABORT0;
@@ -91,8 +104,9 @@ function haltTests(){
 export -f haltTests;
 
 function shuffleBad(){
-	shuf -n 200 "domains-bad-abusech.txt" > "domains-bad-abusech-50.txt";
-	shuf -n 200 "domains-bad-certpl.txt" > "domains-bad-certpl-50.txt";
+	shuf -n "$1" "domains-bad-abusech.txt" > "domains-bad-abusech-shuf.txt";
+	shuf -n "$1" "domains-bad-certpl.txt" > "domains-bad-certpl-shuf.txt";
+	shuf -n "$1" "domains-bad-disconnect_ads.txt" > "domains-bad-disconnect_ads-shuf.txt";
 	dos2unix domains-bad*.txt; #Fixup
 }
 export -f shuffleBad;
@@ -100,6 +114,7 @@ export -f shuffleBad;
 function downloadLists(){
 	wget "https://urlhaus.abuse.ch/downloads/hostfile/" -O - | grep -i -v -e '^#' | sed 's|127.0.0.1\t||' > "domains-bad-abusech.txt";
 	wget "https://hole.cert.pl/domains/domains.txt" -O "domains-bad-certpl.txt";
+	wget "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt" -O - | grep -i -v -e '^#' | sed '/^$/d' > "domains-bad-disconnect_ads.txt";
 	dos2unix domains-bad*.txt; #Fixup
 }
 export -f downloadLists;
