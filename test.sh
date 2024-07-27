@@ -2,22 +2,22 @@
 #Copyright (c) 2023 Divested Computing Group
 #
 #This program is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
+#it under the terms of the GNU Affero General Public License as published by
 #the Free Software Foundation, either version 3 of the License, or
 #(at your option) any later version.
 #
 #This program is distributed in the hope that it will be useful,
 #but WITHOUT ANY WARRANTY; without even the implied warranty of
 #MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+#GNU Affero General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#You should have received a copy of the GNU Affero General Public License
+#along with this program.  If not, see <https:#www.gnu.org/licenses/>.
 
 function resolveHost(){
 	local resolver="$1";
 	local domain="$2";
-	response=$(dig "$resolver" +short A "$domain");
+	response=$(/usr/bin/dig +timeout=2 "$resolver" +short A "$domain");
 	if [ "$?" == 0 ] && [ -z "$response" ]; then
 		#echo "$domain - no response";
 		return 1;
@@ -51,6 +51,8 @@ export -f testResolver;
 function runAllLists(){
 	local resolver="$1";
 	local prettyname="$2";
+	#export resultTime=$(date +%s);
+	#mkdir -p "results/$resultTime";
 	testResolver "$resolver" "domains-good.txt" "$prettyname";
 	testResolver "$resolver" "domains-bad-abusech-shuf.txt" "$prettyname";
 	testResolver "$resolver" "domains-bad-certpl-shuf.txt" "$prettyname";
@@ -63,7 +65,7 @@ function runAllTests(){
 	export resultTime=$(date +%s);
 	mkdir -p "results/$resultTime";
 
-	runAllLists "@8.8.8.8" "Google";
+	runAllLists "@8.8.8.8" "Google [control]";
 
 	runAllLists "@1.1.1.1" "Cloudflare";
 	runAllLists "@1.1.1.2" "Cloudflare (Security)";
@@ -76,6 +78,11 @@ function runAllTests(){
 
 	runAllLists "@94.140.14.140" "AdGuard (nonblocking)";
 	runAllLists "@94.140.14.14" "AdGuard";
+
+	runAllLists "@194.242.2.4" "Mullvad (ads-trackers-malware)"
+
+	runAllLists "@76.76.10.1" "ControlD (malware)";
+	runAllLists "@76.76.10.2" "ControlD (ads-trackers-malware)";
 
 	#runAllLists "@64.6.64.6" "Neustar (nonblocking)";
 	#runAllLists "@156.154.70.2" "Neustar";
